@@ -24,9 +24,12 @@ export class SwerveWheel {
   }
 
   set_vector(vector: Vector) {
-    this.set_target_dir(
-      vector_to_radians(Vector.normalise(vector)) * (180 / Math.PI) - 90
-    );
+    if (Vector.magnitude(vector) != 0) {
+      this.set_target_dir(
+        vector_to_radians(Vector.normalise(vector)) * (180 / Math.PI) - 90
+      );
+    }
+
     this.speed = Vector.magnitude(vector);
   }
 
