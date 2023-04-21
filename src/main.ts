@@ -1,4 +1,11 @@
-import { Engine, Runner, Render, Composite, Bodies } from "matter-js";
+import {
+  Engine,
+  Runner,
+  Render,
+  Composite,
+  Bodies,
+  MouseConstraint,
+} from "matter-js";
 import "./styles.css";
 // import { SwerveWheel } from "./swerve_wheel";
 import { Robot } from "./robot";
@@ -22,9 +29,12 @@ const runner = Runner.create();
 
 const robot = new Robot(runner, { x: 200, y: 200 });
 
+const mouse = MouseConstraint.create(engine);
+
 Composite.add(engine.world, [
   robot.object,
   Bodies.circle(500, 500, 50, { frictionAir: 0.04 }),
+  mouse,
 ]);
 
 const wall_config = {
