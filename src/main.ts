@@ -1,4 +1,4 @@
-import { Engine, Runner, Render, Bodies, Composite, Body } from "matter-js";
+import { Engine, Runner, Render, Composite } from "matter-js";
 import "./styles.css";
 // import { SwerveWheel } from "./swerve_wheel";
 import { Robot } from "./robot";

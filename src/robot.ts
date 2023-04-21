@@ -7,7 +7,7 @@ import {
   Composite,
   Constraint,
 } from "matter-js";
-import { SwerveWheel, vector_to_radians } from "./swerve_wheel";
+import { SwerveWheel } from "./swerve_wheel";
 
 const x_offset = 70;
 const y_offset = 70;
