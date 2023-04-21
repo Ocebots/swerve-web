@@ -22,20 +22,19 @@ const renderer = Render.create({
     width: window.innerWidth,
     showAngleIndicator: true,
     showVelocity: true,
+    showDebug: true,
   },
 });
 
 const runner = Runner.create();
 
-const robot = new Robot(runner, { x: 200, y: 200 });
-
 const mouse = MouseConstraint.create(engine);
 
-Composite.add(engine.world, [
-  robot.object,
-  Bodies.circle(500, 500, 50, { frictionAir: 0.04 }),
-  mouse,
-]);
+const circle = Bodies.circle(500, 500, 50, { frictionAir: 0.04 });
+
+const robot = new Robot(runner, { x: 200, y: 200 }, mouse, circle);
+
+Composite.add(engine.world, [robot.drivetrain.object, circle, mouse]);
 
 const wall_config = {
   collisionFilter: { group: -2 },
