@@ -69,14 +69,9 @@ export class SwerveWheel {
       this.pid_controller.setTarget(this.pid_controller.target + 360);
       Body.setAngularVelocity(
         this.body,
-        this.pid_controller.update(body_angle + 360) / 15
+        this.pid_controller.update(body_angle) / 15
       );
     }
-
-    Body.setAngularVelocity(
-      this.body,
-      this.pid_controller.update(body_angle) / 15
-    );
 
     Body.applyForce(
       this.body,
