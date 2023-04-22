@@ -26,6 +26,8 @@ export class Robot {
 
   was_driven_last_tick = false;
 
+  mouse_down = false;
+
   constructor(
     runner: Runner,
     pos: Vector,
@@ -39,8 +41,17 @@ export class Robot {
     this.set_target_turn(Angle.degrees(0));
 
     Events.on(runner, "afterTick", () => this.tick());
-    Events.on(mouse, "mousemove", (e: { mouse: Mouse }) => {
+    Events.on(mouse, "mousedown", (e: { mouse: Mouse }) => {
       this.set_target_pos(e.mouse.position);
+      this.mouse_down = true;
+    });
+    Events.on(mouse, "mousemove", (e: { mouse: Mouse }) => {
+      if (this.mouse_down) {
+        this.set_target_pos(e.mouse.position);
+      }
+    });
+    Events.on(mouse, "mouseup", (e: { mouse: Mouse }) => {
+      this.mouse_down = false;
     });
 
     window.addEventListener("keydown", (e) => {
