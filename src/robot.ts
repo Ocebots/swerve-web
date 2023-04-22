@@ -8,6 +8,7 @@ import {
 } from "matter-js";
 import { SwerveDrivetrain } from "./drivetrain";
 import Controller from "node-pid-controller";
+import { Angle } from "./angle";
 
 const linear_pid_config = {
   k_p: 0.007,
@@ -19,7 +20,7 @@ export class Robot {
   drivetrain: SwerveDrivetrain;
   x_pid = new Controller(linear_pid_config);
   y_pid = new Controller(linear_pid_config);
-  turn_pid = new Controller(0.5, 0.001, 0.001);
+  turn_pid = new Controller(0.015, 0.0001, 0.001);
 
   target_body: Body;
 
@@ -35,7 +36,7 @@ export class Robot {
     this.target_body = target_body;
 
     this.set_target_pos(pos);
-    this.set_target_turn(0);
+    this.set_target_turn(Angle.degrees(0));
 
     Events.on(runner, "afterTick", () => this.tick());
     Events.on(mouse, "mousemove", (e: { mouse: Mouse }) => {
@@ -88,8 +89,8 @@ export class Robot {
     this.y_pid.setTarget(pos.y);
   }
 
-  set_target_turn(angle: number) {
-    this.turn_pid.setTarget(angle * (Math.PI / 180));
+  set_target_turn(angle: Angle) {
+    this.turn_pid.setTarget(angle.degrees());
   }
 
   tick() {
@@ -98,9 +99,7 @@ export class Robot {
         x: deadzones(navigator.getGamepads()[0]?.axes[0]) / 5,
         y: deadzones(navigator.getGamepads()[0]?.axes[1]) / 5,
       };
-
       this.drivetrain.turn = deadzones(navigator.getGamepads()[0]?.axes[2]) / 2;
-
       if (
         Vector.magnitude(this.drivetrain.forward) != 0 ||
         this.drivetrain.turn != 0
@@ -113,16 +112,23 @@ export class Robot {
       }
     }
 
-    // this.turn_pid.setTarget(
-    //   Vector.angle(this.drivetrain.body.position, this.target_body.position)
-    // );
+    this.set_target_turn(
+      Angle.radians(
+        Vector.angle(this.drivetrain.body.position, this.target_body.position)
+      ).normalize()
+    );
 
     this.drivetrain.forward = {
       x: this.x_pid.update(this.drivetrain.body.position.x) / 5,
       y: this.y_pid.update(this.drivetrain.body.position.y) / 5,
     };
 
-    this.drivetrain.turn = this.turn_pid.update(this.drivetrain.body.angle);
+    this.drivetrain.turn = this.turn_pid.update(
+      Angle.radians(this.drivetrain.body.angle)
+        .normalize()
+        .get_closest(Angle.degrees(this.turn_pid.target))
+        .degrees()
+    );
   }
 }
 

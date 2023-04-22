@@ -1,32 +1,34 @@
 import { Body, Bodies, Vector, Runner, Events } from "matter-js";
 import Controller from "node-pid-controller";
+import { Angle } from "./angle";
 
 export class SwerveWheel {
   body: Body;
   pid_controller: Controller;
   speed: number = 0;
+  log = false;
 
-  constructor(runner: Runner, target_dir: number, pos: Vector) {
+  constructor(runner: Runner, target_dir: Angle, pos: Vector) {
     this.body = Bodies.rectangle(pos.x, pos.y, 15, 40);
 
     this.body.collisionFilter.group = -1;
 
     this.pid_controller = new Controller(0.15, 0.0001, 0.001);
-    this.pid_controller.setTarget(target_dir);
+    this.pid_controller.setTarget(target_dir.degrees());
 
     this.body.frictionAir = 0.5;
 
     Events.on(runner, "afterTick", () => this.tick());
   }
 
-  set_target_dir(angle: number) {
-    this.pid_controller.setTarget(angle);
+  set_target_dir(angle: Angle) {
+    this.pid_controller.setTarget(angle.normalize().degrees());
   }
 
   set_vector(vector: Vector) {
     if (Vector.magnitude(vector) != 0) {
       this.set_target_dir(
-        vector_to_radians(Vector.normalise(vector)) * (180 / Math.PI) - 90
+        Angle.vector(Vector.normalise(vector)).subtract(Angle.degrees(90))
       );
     }
 
@@ -34,70 +36,39 @@ export class SwerveWheel {
   }
 
   tick() {
-    let body_angle = this.body.angle * (180 / Math.PI);
+    let body_angle = Angle.radians(this.body.angle).normalize();
+    const target = Angle.degrees(this.pid_controller.target);
 
-    while (body_angle < 0) {
-      body_angle = body_angle + 360;
+    let forward_body_angle = body_angle.get_closest(target);
+
+    let rev_body_angle = body_angle.rev().get_closest(target);
+
+    let final_body_angle = forward_body_angle;
+    let rev = false;
+
+    if (
+      rev_body_angle.distance(target).degrees() <
+      forward_body_angle.distance(target).degrees()
+    ) {
+      final_body_angle = rev_body_angle;
+      rev = true;
     }
 
-    while (body_angle >= 360) {
-      body_angle = body_angle - 360;
-    }
-
-    const normal_distance = Math.abs(body_angle - this.pid_controller.target);
-    const body_small_distance = Math.abs(
-      body_angle + 360 - this.pid_controller.target
-    );
-    const body_big_distance = Math.abs(
-      body_angle - (this.pid_controller.target + 360)
+    Body.setAngularVelocity(
+      this.body,
+      this.pid_controller.update(final_body_angle.degrees()) / 15
     );
 
     if (
-      normal_distance < body_small_distance &&
-      normal_distance < body_big_distance
+      final_body_angle
+        .distance(Angle.degrees(this.pid_controller.target))
+        .degrees() < 35
     ) {
-      Body.setAngularVelocity(
+      Body.applyForce(
         this.body,
-        this.pid_controller.update(body_angle) / 15
-      );
-    } else if (
-      body_small_distance < normal_distance &&
-      body_small_distance < body_big_distance
-    ) {
-      Body.setAngularVelocity(
-        this.body,
-        this.pid_controller.update(body_angle + 360) / 15
-      );
-    } else {
-      this.pid_controller.setTarget(this.pid_controller.target + 360);
-      Body.setAngularVelocity(
-        this.body,
-        this.pid_controller.update(body_angle) / 15
+        this.body.position,
+        Vector.rotate({ x: 0, y: this.speed * (rev ? -1 : 1) }, this.body.angle)
       );
     }
-
-    Body.applyForce(
-      this.body,
-      this.body.position,
-      Vector.rotate({ x: 0, y: this.speed }, this.body.angle)
-    );
   }
-}
-
-export function vector_to_radians(vector: Vector): number {
-  if (vector.x == 0) {
-    return vector.y > 0 ? Math.PI / 2 : (Math.PI * 3) / 2;
-  }
-
-  let angle = Math.atan(vector.y / vector.x);
-
-  if (angle < 0) {
-    angle = Math.PI * 2 + angle;
-  }
-
-  if (vector.x < 0) {
-    return angle - Math.PI;
-  }
-
-  return angle;
 }

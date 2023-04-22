@@ -8,10 +8,11 @@ import {
   Constraint,
 } from "matter-js";
 import { SwerveWheel } from "./swerve_wheel";
+import { Angle } from "./angle";
 
 const x_offset = 70;
 const y_offset = 70;
-const angle = 0;
+const angle = Angle.degrees(0);
 
 const top_right: Vector = {
   x: x_offset,
@@ -70,6 +71,8 @@ export class SwerveDrivetrain {
       angle,
       Vector.add(bottom_left, pos)
     );
+
+    this.top_left_wheel.log = true;
 
     this.object = Composite.create({
       bodies: [

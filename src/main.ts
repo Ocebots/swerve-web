@@ -9,7 +9,6 @@ import {
 import "./styles.css";
 // import { SwerveWheel } from "./swerve_wheel";
 import { Robot } from "./robot";
-
 const engine = Engine.create();
 
 engine.gravity.scale = 0;
@@ -32,7 +31,7 @@ const mouse = MouseConstraint.create(engine);
 
 const circle = Bodies.circle(500, 500, 50, { frictionAir: 0.04 });
 
-const robot = new Robot(runner, { x: 200, y: 200 }, mouse, circle);
+const robot = new Robot(runner, { x: 700, y: 700 }, mouse, circle);
 
 Composite.add(engine.world, [robot.drivetrain.object, circle, mouse]);
 
