@@ -41,15 +41,25 @@ export class Robot {
     this.set_target_turn(Angle.degrees(0));
 
     Events.on(runner, "afterTick", () => this.tick());
-    Events.on(mouse, "mousedown", (e: { mouse: Mouse }) => {
-      this.set_target_pos(e.mouse.position);
-      this.mouse_down = true;
-    });
-    Events.on(mouse, "mousemove", (e: { mouse: Mouse }) => {
-      if (this.mouse_down) {
-        this.set_target_pos(e.mouse.position);
+    Events.on(
+      mouse,
+      "mousedown",
+      (e: { mouse: Mouse; source: MouseConstraint }) => {
+        if (e.source.body == null) {
+          this.set_target_pos(e.mouse.position);
+          this.mouse_down = true;
+        }
       }
-    });
+    );
+    Events.on(
+      mouse,
+      "mousemove",
+      (e: { mouse: Mouse; source: MouseConstraint }) => {
+        if (this.mouse_down && e.source.body == null) {
+          this.set_target_pos(e.mouse.position);
+        }
+      }
+    );
     Events.on(mouse, "mouseup", () => {
       this.mouse_down = false;
     });
