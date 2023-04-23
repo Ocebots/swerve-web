@@ -50,7 +50,7 @@ export class Robot {
         this.set_target_pos(e.mouse.position);
       }
     });
-    Events.on(mouse, "mouseup", (e: { mouse: Mouse }) => {
+    Events.on(mouse, "mouseup", () => {
       this.mouse_down = false;
     });
 
