@@ -28,6 +28,7 @@ const renderer = Render.create({
 const runner = Runner.create();
 
 const mouse = MouseConstraint.create(engine);
+mouse.collisionFilter.group = -1;
 
 const circle = Bodies.circle(500, 500, 50, { frictionAir: 0.04 });
 
